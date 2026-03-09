@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Water Jug Search Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-slate-900 text-slate-100 font-['Inter'] min-h-screen">
+    <div class="container mx-auto p-4 lg:p-6 max-w-7xl">
+        <!-- Header -->
+        <header
+            class="mb-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 shadow-xl backdrop-blur-sm">
+            <div>
+                <h1
+                    class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                    AI Water Jug Search Visualizer</h1>
+                <p class="text-slate-400 text-sm mt-1">Explore BFS and DFS algorithms step-by-step</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="flex flex-col">
+                    <label class="text-xs text-slate-500 mb-1 ml-1">Jug 1 Capacity</label>
+                    <input type="number" id="jug1-cap" value="4"
+                        class="w-20 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-xs text-slate-500 mb-1 ml-1">Jug 2 Capacity</label>
+                    <input type="number" id="jug2-cap" value="3"
+                        class="w-20 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-xs text-slate-500 mb-1 ml-1">Target</label>
+                    <input type="number" id="target-val" value="2"
+                        class="w-20 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-xs text-slate-500 mb-1 ml-1">Algorithm</label>
+                    <select id="algo-select"
+                        class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                        <option value="bfs">Breadth-First Search (BFS)</option>
+                        <option value="dfs">Depth-First Search (DFS)</option>
+                    </select>
+                </div>
+                <button id="solve-btn"
+                    class="mt-5 px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold shadow-lg shadow-blue-900/20 transition-all active:scale-95">Solve
+                    & Simulate</button>
+            </div>
+        </header>
+
+        <!-- Main Visualization Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- 3D Visualization -->
+            <div class="bg-slate-800/40 rounded-2xl border border-slate-700 overflow-hidden flex flex-col h-[500px]">
+                <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+                    <h2 class="font-semibold flex items-center gap-2">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                        3D Water Simulation
+                    </h2>
+                    <div id="status-badge" class="px-3 py-1 bg-slate-700 rounded-full text-xs text-slate-300">Ready
+                    </div>
+                </div>
+                <div id="three-container"
+                    class="flex-grow flex items-center justify-center relative bg-gradient-to-b from-slate-900 to-slate-800">
+                    <!-- Progress Overlay -->
+                    <div id="step-counter"
+                        class="absolute top-4 right-4 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-700 text-sm hidden">
+                        Step: <span id="current-step">0</span> / <span id="total-steps">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graph Visualization -->
+            <div class="bg-slate-800/40 rounded-2xl border border-slate-700 overflow-hidden flex flex-col h-[500px]">
+                <div class="p-4 border-b border-slate-700">
+                    <h2 class="font-semibold flex items-center gap-2">
+                        <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                        State Search Graph
+                    </h2>
+                </div>
+                <div id="graph-container" class="flex-grow bg-slate-900/30 overflow-hidden"></div>
+            </div>
+        </div>
+
+        <!-- Controls and Info -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Step Explanation -->
+            <div class="lg:col-span-2 bg-slate-800/40 rounded-2xl border border-slate-700 flex flex-col">
+                <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+                    <h2 class="font-semibold">Step Explanation & Control</h2>
+                    <div class="flex items-center gap-4">
+                        <input type="range" id="speed-slider" min="100" max="2000" value="1000" step="100"
+                            class="w-32 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                        <span class="text-xs text-slate-400 w-12 text-right">Speed</span>
+                    </div>
+                </div>
+                <div class="p-6 flex flex-col h-full">
+                    <div id="instruction-panel"
+                        class="flex-grow flex flex-col items-center justify-center text-center p-8 bg-slate-900/40 rounded-xl mb-6">
+                        <div id="rule-display" class="text-2xl font-bold text-blue-400 mb-2">Initialize Simulation</div>
+                        <div id="state-display" class="text-lg text-slate-300">Enter capacities and click Solve</div>
+                    </div>
+
+                    <div class="flex justify-center items-center gap-4">
+                        <button id="prev-btn"
+                            class="p-3 bg-slate-700 hover:bg-slate-600 rounded-full transition-colors disabled:opacity-30"
+                            disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                                <line x1="5" y1="19" x2="5" y2="5"></line>
+                            </svg>
+                        </button>
+                        <button id="play-pause-btn"
+                            class="p-4 bg-blue-600 hover:bg-blue-500 rounded-full transition-colors shadow-lg shadow-blue-900/30 disabled:opacity-30"
+                            disabled>
+                            <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                            <svg id="pause-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="24"
+                                height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="6" y="4" width="4" height="16"></rect>
+                                <rect x="14" y="4" width="4" height="16"></rect>
+                            </svg>
+                        </button>
+                        <button id="next-btn"
+                            class="p-3 bg-slate-700 hover:bg-slate-600 rounded-full transition-colors disabled:opacity-30"
+                            disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                                <line x1="19" y1="5" x2="19" y2="19"></line>
+                            </svg>
+                        </button>
+                        <button id="reset-btn"
+                            class="ml-4 p-3 border border-slate-600 hover:border-slate-500 rounded-full transition-colors disabled:opacity-30"
+                            disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                <path d="M3 3v5h5"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algorithm Metrics -->
+            <div class="bg-slate-800/40 rounded-2xl border border-slate-700 overflow-hidden flex flex-col">
+                <div class="p-4 border-b border-slate-700">
+                    <h2 class="font-semibold">Algorithm Performance</h2>
+                </div>
+                <div class="p-6 space-y-6 flex-grow">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Visited States</p>
+                            <p id="visited-count" class="text-2xl font-bold text-emerald-400">0</p>
+                        </div>
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Path Length</p>
+                            <p id="path-length" class="text-2xl font-bold text-blue-400">0</p>
+                        </div>
+                    </div>
+
+                    <div id="comparison-stats" class="space-y-3">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-400">Strategy Effectiveness</span>
+                            <span id="efficiency-percent" class="text-slate-200">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-700 rounded-full h-1.5">
+                            <div id="efficiency-bar"
+                                class="bg-blue-500 h-1.5 rounded-full w-0 transition-all duration-500"></div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-700/50">
+                        <button id="download-report-btn"
+                            class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-30"
+                            disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Download Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden Canvas for PDF Generation -->
+        <canvas id="pdf-chart-canvas" class="hidden"></canvas>
+    </div>
+
+    <!-- Scripts -->
+    <script src="jug3d.js"></script>
+    <script src="graph.js"></script>
+    <script src="main.js"></script>
+</body>
+
+</html>

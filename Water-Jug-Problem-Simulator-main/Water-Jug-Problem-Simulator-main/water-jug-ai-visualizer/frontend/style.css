@@ -1,0 +1,98 @@
+:root {
+    --bg-dark: #0f172a;
+    --accent-blue: #3b82f6;
+    --accent-emerald: #10b981;
+}
+
+body {
+    scrollbar-width: thin;
+    scrollbar-color: #334155 #0f172a;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 10px;
+}
+
+/* Three.js container styles */
+#three-container canvas {
+    display: block;
+    outline: none;
+}
+
+/* D3.js Styles */
+.node circle {
+    stroke: #1e293b;
+    stroke-width: 2px;
+}
+
+.node text {
+    font-size: 10px;
+    fill: #cbd5e1;
+    font-weight: 500;
+}
+
+.link {
+    fill: none;
+    stroke: #334155;
+    stroke-width: 1.5px;
+}
+
+.node--target circle {
+    fill: #10b981 !important;
+    filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.5));
+}
+
+.node--active circle {
+    fill: #3b82f6 !important;
+    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8));
+    stroke: #fff !important;
+}
+
+.link--active {
+    stroke: #3b82f6 !important;
+    stroke-width: 3px !important;
+    stroke-dasharray: 5, 5;
+    animation: dash 0.5s linear infinite;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: -10;
+    }
+}
+
+/* Animation controls custom styling */
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    margin-top: -7px;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+    background: #334155;
+    border-radius: 10px;
+}
+
+/* Glassmorphism effects */
+.glass {
+    background: rgba(30, 41, 59, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}

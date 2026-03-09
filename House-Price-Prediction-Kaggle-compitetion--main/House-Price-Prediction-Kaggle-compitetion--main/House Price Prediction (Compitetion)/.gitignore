@@ -1,0 +1,48 @@
+# System Files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Environments
+env/
+venv/
+.venv/
+ENV/
+bin/
+lib/
+include/
+share/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Project Specific
+house_price_prediction/catboost_info/
+house_price_prediction/data/processed/*.csv
+house_price_prediction/models/saved_models/*.pkl
+house_price_prediction/models/saved_models/*.joblib
+house_price_prediction/models/saved_models/*.h5
+
+# Local config
+.env
+.streamlit/config.toml
+.streamlit/secrets.toml
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace

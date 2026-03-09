@@ -1,0 +1,33 @@
+data:
+  raw_path: "data/raw/train.csv"
+  test_path: "data/raw/test.csv"
+  processed_path: "data/processed/"
+  target: "Transported"
+  drop_cols: ["PassengerId", "Name"]
+
+features:
+  numerical_cols: ["Age", "RoomService", "FoodCourt", "ShoppingMall", "Spa", "VRDeck"]
+  categorical_cols: ["HomePlanet", "CryoSleep", "Destination", "VIP"]
+  cabin_col: "Cabin"
+
+model:
+  random_seed: 42
+  test_size: 0.2
+  cv_folds: 5
+  saved_models_path: "models/saved_models/"
+  mlflow_tracking_uri: "sqlite:///mlflow.db"
+  experiment_name: "Spaceship_Titanic_Production"
+
+tuning:
+  n_trials: 50
+  timeout: 600
+
+monitoring:
+  drift_report_path: "reports/drift_report.html"
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+
+streamlit:
+  port: 8501
